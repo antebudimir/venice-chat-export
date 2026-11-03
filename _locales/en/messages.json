@@ -1,0 +1,505 @@
+{
+  "extensionDescription": {
+    "message": "Local archive for your own Venice.ai conversations: export, import, and lineage-aware merge. Nothing leaves your machine."
+  },
+  "actionTitle": {
+    "message": "Venice Vault"
+  },
+  "popupHeader": {
+    "message": "Venice Vault"
+  },
+  "openOptions": {
+    "message": "Open options"
+  },
+  "openOptionsShort": {
+    "message": "Options"
+  },
+  "sourceChecking": {
+    "message": "Checking for previous runs…"
+  },
+  "sourceNoRuns": {
+    "message": "No runs yet — export from an open venice.ai conversation tab."
+  },
+  "sourceLastRun": {
+    "message": "Last run $AT$ — $STATUS$",
+    "placeholders": {
+      "at": {
+        "content": "$1"
+      },
+      "status": {
+        "content": "$2"
+      }
+    }
+  },
+  "exportTitle": {
+    "message": "Export"
+  },
+  "formatsActive": {
+    "message": "Formats: $LIST$ (change in Options)",
+    "placeholders": {
+      "list": {
+        "content": "$1"
+      }
+    }
+  },
+  "syncDue": {
+    "message": "Auto-sync reminder: last run is older than $MINUTES$ minutes.",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "btnExport": {
+    "message": "Export now"
+  },
+  "progressLabel": {
+    "message": "Export progress"
+  },
+  "importTitle": {
+    "message": "Import"
+  },
+  "importNote": {
+    "message": "Files are inspected first — nothing is written until you confirm."
+  },
+  "btnImport": {
+    "message": "Import files…"
+  },
+  "importCommit": {
+    "message": "Commit import"
+  },
+  "importCancel": {
+    "message": "Cancel"
+  },
+  "importDryRunTitle": {
+    "message": "Dry run — $CONVERSATIONS$ conversations, $MESSAGES$ messages:",
+    "placeholders": {
+      "conversations": {
+        "content": "$1"
+      },
+      "messages": {
+        "content": "$2"
+      }
+    }
+  },
+  "importAdded": {
+    "message": "Added: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "importUnchanged": {
+    "message": "Unchanged: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "importExtended": {
+    "message": "Extended: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "importPrefix": {
+    "message": "Prefix — flagged for review: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "importBranch": {
+    "message": "Branch or edit — flagged, never auto-resolved: $COUNT$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "importErrorLine": {
+    "message": "$NAME$: $REASON$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "reason": {
+        "content": "$2"
+      }
+    }
+  },
+  "logTitle": {
+    "message": "Activity log"
+  },
+  "emptyLog": {
+    "message": "Ready. Exports and imports are logged here, newest last."
+  },
+  "logExportStarted": {
+    "message": "Export started."
+  },
+  "logScrapeStart": {
+    "message": "Reading conversation from the active venice.ai tab…"
+  },
+  "logTierMatched": {
+    "message": "Matched selector tier $TIER$ — $DESCRIPTION$",
+    "placeholders": {
+      "tier": {
+        "content": "$1"
+      },
+      "description": {
+        "content": "$2"
+      }
+    }
+  },
+  "logWarning": {
+    "message": "Warning: $CODE$ $DETAIL$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      },
+      "detail": {
+        "content": "$2"
+      }
+    }
+  },
+  "logCaptureStored": {
+    "message": "Raw capture stored before any serialization (snapshot before read)."
+  },
+  "logMerged": {
+    "message": "Merge plan — added $ADDED$, unchanged $UNCHANGED$, extended $EXTENDED$, prefix $PREFIX$, branch $BRANCH$.",
+    "placeholders": {
+      "added": {
+        "content": "$1"
+      },
+      "unchanged": {
+        "content": "$2"
+      },
+      "extended": {
+        "content": "$3"
+      },
+      "prefix": {
+        "content": "$4"
+      },
+      "branch": {
+        "content": "$5"
+      }
+    }
+  },
+  "logFileWritten": {
+    "message": "Written: $FILE$",
+    "placeholders": {
+      "file": {
+        "content": "$1"
+      }
+    }
+  },
+  "logFileFailed": {
+    "message": "FAILED: $FILE$ — $ERROR$",
+    "placeholders": {
+      "file": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "logRunPass": {
+    "message": "PASS — every write completed; nothing was replaced."
+  },
+  "logRunFailed": {
+    "message": "FAILED — $COUNT$ item(s) did not complete; earlier files remain intact.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "logDiagnosticsStarted": {
+    "message": "Building redacted diagnostics…"
+  },
+  "logDiagnosticsWritten": {
+    "message": "Diagnostics written: $FILE$ (redacted)",
+    "placeholders": {
+      "file": {
+        "content": "$1"
+      }
+    }
+  },
+  "logInspecting": {
+    "message": "Inspecting $COUNT$ file(s)…",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "logInspectDone": {
+    "message": "Inspection complete — review the dry run, then commit."
+  },
+  "logImportCommitted": {
+    "message": "Import committed — added $ADDED$, extended $EXTENDED$. Flagged items were stored, not merged.",
+    "placeholders": {
+      "added": {
+        "content": "$1"
+      },
+      "extended": {
+        "content": "$2"
+      }
+    }
+  },
+  "logImportFlaggedNote": {
+    "message": "Prefix/branch conflicts are kept under review in the library; resolve them deliberately, never automatically."
+  },
+  "logDataCleared": {
+    "message": "All stored data cleared (explicit user action)."
+  },
+  "errNoVeniceTab": {
+    "message": "No active venice.ai tab found — open a conversation, then export."
+  },
+  "errZeroMessages": {
+    "message": "Zero messages scraped — selectors matched nothing readable. Not writing an empty file. Open a conversation with messages and try again."
+  },
+  "errScrapeFailed": {
+    "message": "Scraping failed: $DETAIL$",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      }
+    }
+  },
+  "errUnexpected": {
+    "message": "Unexpected error: $DETAIL$",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      }
+    }
+  },
+  "errNoImportFiles": {
+    "message": "No import files selected."
+  },
+  "errFolderPermission": {
+    "message": "Folder access was denied — exports fell back to the Downloads dialog. Re-select the folder to reconnect."
+  },
+  "statusPass": {
+    "message": "PASS"
+  },
+  "statusFailed": {
+    "message": "FAILED"
+  },
+  "countsSummary": {
+    "message": "Snapshot file count: $FILES$ · conversation count: $CONVERSATIONS$ · message count: $MESSAGES$ — three different counts; never read one as another.",
+    "placeholders": {
+      "files": {
+        "content": "$1"
+      },
+      "conversations": {
+        "content": "$2"
+      },
+      "messages": {
+        "content": "$3"
+      }
+    }
+  },
+  "optionsTitle": {
+    "message": "Venice Vault options"
+  },
+  "sectionCapture": {
+    "message": "Capture"
+  },
+  "optFloatingButton": {
+    "message": "Show floating button on venice.ai"
+  },
+  "optFloatingButtonDesc": {
+    "message": "A small 'Archive with Venice Vault' button in the page corner. Off by default; the page is otherwise untouched."
+  },
+  "sectionExport": {
+    "message": "Export formats"
+  },
+  "optFormatsDesc": {
+    "message": "Each format is written as separate timestamped files; existing files are never replaced. Default: JSON only. Use the Bundle for moving machines — it carries version history."
+  },
+  "formatJson": {
+    "message": "JSON (backup — canonical, lossless)"
+  },
+  "formatMarkdown": {
+    "message": "Markdown (one file per conversation)"
+  },
+  "formatHtml": {
+    "message": "HTML (self-contained, for archiving)"
+  },
+  "formatBundle": {
+    "message": "Bundle (migration — re-importable, includes lineage)"
+  },
+  "optFilenameTemplate": {
+    "message": "Filename template"
+  },
+  "optFilenameTemplateDesc": {
+    "message": "Tokens: {date} {time} {title} {ext}. Components are sanitized for Windows, macOS, and Linux."
+  },
+  "optAskSaveLocation": {
+    "message": "Ask where to save each file"
+  },
+  "optAskSaveLocationDesc": {
+    "message": "Opens a save dialog per file. Off by default: files go to your Downloads folder with unique names."
+  },
+  "sectionSync": {
+    "message": "Auto-sync"
+  },
+  "optAutoSync": {
+    "message": "Remind me to export"
+  },
+  "optAutoSyncDesc": {
+    "message": "Off by default. This is a reminder shown when you open the popup — the extension never runs in the background on its own."
+  },
+  "syncOff": {
+    "message": "Off"
+  },
+  "syncDaily": {
+    "message": "Daily"
+  },
+  "syncWeekly": {
+    "message": "Weekly"
+  },
+  "sectionDiagnostics": {
+    "message": "Diagnostics"
+  },
+  "diagnosticsDesc": {
+    "message": "Writes a redacted support report: sizes, counts, schema versions, problem counts. No conversation text, no record IDs, no local paths."
+  },
+  "btnDiagnostics": {
+    "message": "Export redacted diagnostics"
+  },
+  "sectionData": {
+    "message": "Stored data"
+  },
+  "clearDataDesc": {
+    "message": "Removes every capture, version, and preference stored by this extension. Files already written to disk are not touched."
+  },
+  "btnClearData": {
+    "message": "Clear all stored data"
+  },
+  "confirmClear": {
+    "message": "Click again to confirm — this cannot be undone"
+  },
+  "confirmClearNote": {
+    "message": "Destructive action: click once to arm, again to confirm. The request expires after 5 seconds."
+  },
+  "clearedData": {
+    "message": "Stored data cleared."
+  },
+  "savedOptions": {
+    "message": "Options saved."
+  },
+  "btnExportAll": {
+    "message": "Export all conversations"
+  },
+  "btnExportAllCancel": {
+    "message": "Cancel bulk export (finishes current item)"
+  },
+  "logBulkStart": {
+    "message": "Bulk export started — reading your conversation list…"
+  },
+  "logBulkListScraped": {
+    "message": "Conversation list read: $COUNT$ conversations. Visiting each one; this takes a while.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "logBulkItemDone": {
+    "message": "[$DONE$/$TOTAL$] Archived: $TITLE$",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      },
+      "title": {
+        "content": "$3"
+      }
+    }
+  },
+  "logBulkItemFailed": {
+    "message": "FAILED item: $TITLE$ — $ERROR$ (continuing)",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "logBulkCancelled": {
+    "message": "Bulk export cancelled — already-scraped conversations are kept and exported."
+  },
+  "logBulkDone": {
+    "message": "Bulk export finished: $CONVERSATIONS$ of $LISTED$ conversations; $FAILURES$ item(s) failed.",
+    "placeholders": {
+      "conversations": {
+        "content": "$1"
+      },
+      "listed": {
+        "content": "$2"
+      },
+      "failures": {
+        "content": "$3"
+      }
+    }
+  },
+  "errNoConversationList": {
+    "message": "Could not read your conversation list: $DETAIL$ Open the venice.ai chats list view (where conversations are listed), then try again.",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      }
+    }
+  },
+  "logImportLineageMerged": {
+    "message": "Bundle lineage migrated: $VERSIONS$ versions, $OCCURRENCES$ occurrences, $FLAGGED$ flagged restored; $INVALID$ invalid entries skipped.",
+    "placeholders": {
+      "versions": {
+        "content": "$1"
+      },
+      "occurrences": {
+        "content": "$2"
+      },
+      "flagged": {
+        "content": "$3"
+      },
+      "invalid": {
+        "content": "$4"
+      }
+    }
+  },
+  "optFormats": {
+    "message": "Export formats"
+  },
+  "bannerHostPermission": {
+    "message": "Firefox has not granted venice.ai access for this extension version (temporary add-ons reset this on every reload). Without it, scraping cannot run."
+  },
+  "btnGrantPermission": {
+    "message": "Grant venice.ai access"
+  },
+  "grantSuccess": {
+    "message": "venice.ai access granted — exports will work now."
+  },
+  "grantFailed": {
+    "message": "Access was not granted. You can also enable it in about:addons → Venice Vault → Permissions."
+  },
+  "errHostPermission": {
+    "message": "MISSING HOST PERMISSION: Firefox has not granted venice.ai access for this extension version. Fix: about:addons → Venice Vault → Permissions → enable \"Access your data for venice.ai\" (this resets on every temporary-add-on reload), or use the Grant button in the popup. Nothing was stored from this run."
+  },
+  "accessGranted": {
+    "message": "Access granted"
+  }
+}

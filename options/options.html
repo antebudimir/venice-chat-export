@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2026 Ante Budimir
+     SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Venice Vault — Options</title>
+  <!-- ui/tokens.css must stay the FIRST stylesheet (shared with popup). -->
+  <link rel="stylesheet" href="../ui/tokens.css">
+  <style>
+    /* Copyright (C) 2026 Ante Budimir — SPDX-License-Identifier: AGPL-3.0-or-later */
+    body { max-width: 40rem; margin: 0 auto; padding: var(--space-8) var(--space-4); }
+    .vv-section { margin-bottom: var(--space-6); }
+    .vv-section > h2 { margin-bottom: var(--space-1); }
+    .vv-section > .vv-note { margin-bottom: var(--space-3); }
+    .vv-checkline { display: flex; align-items: center; gap: var(--space-2); min-height: 32px; }
+    .vv-template { width: 100%; }
+    #options-status { font-family: var(--font-mono); font-size: 11px; }
+  </style>
+  <script src="options.js" type="module"></script>
+</head>
+<body>
+  <header>
+    <h1 data-i18n="optionsTitle"></h1>
+    <p id="options-status" class="vv-status" aria-live="polite"></p>
+  </header>
+
+  <main>
+    <section class="vv-card vv-section" aria-labelledby="capture-h">
+      <h2 id="capture-h" data-i18n="sectionCapture"></h2>
+      <p class="vv-note" data-i18n="optFloatingButtonDesc"></p>
+      <label class="vv-checkline">
+        <input id="opt-floating" type="checkbox">
+        <span data-i18n="optFloatingButton"></span>
+      </label>
+    </section>
+
+    <section class="vv-card vv-section" aria-labelledby="export-h">
+      <h2 id="export-h" data-i18n="sectionExport"></h2>
+      <p class="vv-note" data-i18n="optFormatsDesc"></p>
+      <div id="format-list" role="group" data-i18n-aria="optFormats">
+        <label class="vv-checkline"><input type="checkbox" value="json"><span data-i18n="formatJson"></span></label>
+        <label class="vv-checkline"><input type="checkbox" value="markdown"><span data-i18n="formatMarkdown"></span></label>
+        <label class="vv-checkline"><input type="checkbox" value="html"><span data-i18n="formatHtml"></span></label>
+        <label class="vv-checkline"><input type="checkbox" value="bundle"><span data-i18n="formatBundle"></span></label>
+      </div>
+      <label for="opt-template" class="vv-status" data-i18n="optFilenameTemplate"></label>
+      <p class="vv-note" data-i18n="optFilenameTemplateDesc"></p>
+      <input id="opt-template" type="text" class="vv-input vv-template" spellcheck="false">
+      <label class="vv-checkline">
+        <input id="opt-asksave" type="checkbox">
+        <span data-i18n="optAskSaveLocation"></span>
+      </label>
+      <p class="vv-note" data-i18n="optAskSaveLocationDesc"></p>
+    </section>
+
+    <section class="vv-card vv-section" aria-labelledby="import-h">
+      <h2 id="import-h" data-i18n="importTitle"></h2>
+      <p class="vv-note" data-i18n="importNote"></p>
+      <div class="vv-row">
+        <button id="btn-import" type="button" class="vv-btn vv-btn-secondary" data-i18n="btnImport"></button>
+        <input id="import-input" type="file" multiple hidden accept=".json,.jsonl,.md,.markdown,.txt,.csv,.html,.htm">
+      </div>
+      <div id="import-review" hidden>
+        <p id="import-review-text" class="vv-status"></p>
+        <div class="vv-row">
+          <button id="btn-import-commit" type="button" class="vv-btn vv-btn-primary" data-i18n="importCommit"></button>
+          <button id="btn-import-cancel" type="button" class="vv-btn vv-btn-ghost" data-i18n="importCancel"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="vv-card vv-section" aria-labelledby="sync-h">
+      <h2 id="sync-h" data-i18n="sectionSync"></h2>
+      <p class="vv-note" data-i18n="optAutoSyncDesc"></p>
+      <label for="opt-autosync" class="vv-status" data-i18n="optAutoSync"></label>
+      <select id="opt-autosync" class="vv-select">
+        <option value="0" data-i18n="syncOff"></option>
+        <option value="1440" data-i18n="syncDaily"></option>
+        <option value="10080" data-i18n="syncWeekly"></option>
+      </select>
+    </section>
+
+    <section class="vv-card vv-section" aria-labelledby="diag-h">
+      <h2 id="diag-h" data-i18n="sectionDiagnostics"></h2>
+      <p class="vv-note" data-i18n="diagnosticsDesc"></p>
+      <button id="btn-diagnostics" type="button" class="vv-btn vv-btn-secondary" data-i18n="btnDiagnostics"></button>
+    </section>
+
+    <section class="vv-card vv-section" aria-labelledby="data-h">
+      <h2 id="data-h" data-i18n="sectionData"></h2>
+      <p class="vv-note" data-i18n="clearDataDesc"></p>
+      <button id="btn-clear" type="button" class="vv-btn vv-btn-danger" data-i18n="btnClearData"></button>
+    </section>
+  </main>
+</body>
+</html>

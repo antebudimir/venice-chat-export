@@ -1,0 +1,32 @@
+{
+  "name": "venice-vault",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Dev tooling for the Venice Vault Firefox extension. Nothing in this file ships in the built XPI.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "web-ext lint",
+    "build": "web-ext build --overwrite-dest && node tools/rename-xpi.cjs",
+    "icons": "node tools/make-icons.mjs"
+  },
+  "devDependencies": {
+    "web-ext": "^8.7.0"
+  },
+  "webExt": {
+    "ignoreFiles": [
+      "test",
+      "tools",
+      ".github",
+      "node_modules",
+      "package.json",
+      "package-lock.json",
+      "web-ext-artifacts",
+      ".gitignore"
+    ]
+  }
+}

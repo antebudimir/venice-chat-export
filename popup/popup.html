@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2026 Ante Budimir
+     SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Venice Vault</title>
+  <!-- ui/tokens.css must stay the FIRST stylesheet (shared with options). -->
+  <link rel="stylesheet" href="../ui/tokens.css">
+  <link rel="stylesheet" href="popup.css">
+  <script src="popup.js" type="module"></script>
+</head>
+<body>
+  <header class="vv-header">
+    <img src="../icons/icon-32.png" alt="" width="20" height="20">
+    <h1 data-i18n="popupHeader"></h1>
+    <button id="btn-options" type="button" class="vv-btn vv-btn-ghost vv-btn-options"
+            data-i18n="openOptionsShort" data-i18n-aria="openOptions"></button>
+  </header>
+
+  <main class="vv-main">
+    <div id="host-permission-banner" class="vv-card vv-banner-warn" role="alert" hidden>
+      <p class="vv-status" data-i18n="bannerHostPermission"></p>
+      <button id="btn-grant-permission" type="button" class="vv-btn vv-btn-primary vv-btn-block"
+              data-i18n="btnGrantPermission"></button>
+    </div>
+
+    <section class="vv-card" aria-labelledby="export-title">
+      <h2 id="export-title" data-i18n="exportTitle"></h2>
+      <p id="formats-line" class="vv-status"></p>
+      <p id="sync-status" class="vv-status" hidden></p>
+      <p id="source-status" class="vv-status" data-i18n="sourceNoRuns"></p>
+      <button id="btn-export" type="button" class="vv-btn vv-btn-primary vv-btn-block"
+              data-i18n="btnExport"></button>
+      <button id="btn-export-all" type="button" class="vv-btn vv-btn-secondary vv-btn-block"
+              data-i18n="btnExportAll"></button>
+      <button id="btn-export-cancel" type="button" class="vv-btn vv-btn-danger vv-btn-block"
+              data-i18n="btnExportAllCancel" hidden></button>
+      <div id="progress" class="vv-progress" role="progressbar" aria-valuemin="0"
+           aria-valuemax="100" aria-valuenow="0" data-i18n-aria="progressLabel">
+        <div id="progress-fill" class="vv-progress-fill"></div>
+      </div>
+    </section>
+
+    <section class="vv-card" aria-labelledby="log-title">
+      <h2 id="log-title" data-i18n="logTitle"></h2>
+      <div id="log" class="vv-log vv-log-popup" role="log" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="vv-footer">
+    <p id="counts-summary" class="vv-status"></p>
+  </footer>
+</body>
+</html>

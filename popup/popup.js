@@ -1,0 +1,178 @@
+/* Copyright (C) 2026 Ante Budimir
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/**
+ * Popup controller: permission grant, exports (single + bulk), quiet log,
+ * determinate progress. v0.3.0: the archive-folder picker and the popup
+ * import flow were removed — Firefox closes extension popups when a file
+ * dialog opens, which made both dead code. Imports run from the Options
+ * page (a real tab, which survives file dialogs). The three-count
+ * vocabulary (snapshot file count / conversation count / message count) is
+ * always rendered together so no count can imply another.
+ */
+
+const OPTIONS_KEY = 'vault:options';
+const VENICE_ORIGIN = { origins: ['https://venice.ai/*'] };
+const FORMAT_LABEL_KEYS = {
+  json: 'formatJson', markdown: 'formatMarkdown', html: 'formatHtml', bundle: 'formatBundle',
+};
+
+const $ = (id) => document.getElementById(id);
+const t = (key, subs) => browser.i18n.getMessage(key, subs) || key;
+
+/** Apply _locales strings to every data-i18n / data-i18n-aria element. */
+function localize() {
+  for (const el of document.querySelectorAll('[data-i18n]')) {
+    el.textContent = t(el.dataset.i18n);
+  }
+  for (const el of document.querySelectorAll('[data-i18n-aria]')) {
+    el.setAttribute('aria-label', t(el.dataset.i18nAria));
+  }
+}
+
+/** Append one line to the quiet log (newest last), then scroll it into view. */
+function logLine(message, level = 'info') {
+  const line = document.createElement('p');
+  line.className = `vv-log-line vv-log-${level}`;
+  const time = new Date().toLocaleTimeString();
+  line.textContent = `${time} ${message}`;
+  const logBox = $('log');
+  logBox.append(line);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+/** Update the determinate progress bar (never a spinner-only state). */
+function setProgress(value, max) {
+  const bar = $('progress');
+  const fill = $('progress-fill');
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  fill.style.width = `${pct}%`;
+  bar.setAttribute('aria-valuenow', String(pct));
+}
+
+/** Render the three distinct counts, named, together — never one alone. */
+function setCountsSummary(snapshotFiles, conversations, messages, status) {
+  const line = t('countsSummary', [String(snapshotFiles), String(conversations), String(messages)]);
+  const statusLabel = status === 'PASS' ? t('statusPass') : t('statusFailed');
+  $('counts-summary').textContent = `${line} · ${statusLabel}`;
+}
+
+/** Show active export formats as localized names. */
+async function refreshFormatsLine() {
+  const stored = await browser.storage.local.get(OPTIONS_KEY);
+  const options = stored[OPTIONS_KEY] ?? {};
+  const formats = Array.isArray(options.formats) && options.formats.length > 0 ? options.formats : ['json'];
+  $('formats-line').textContent = t('formatsActive', [formats.map((f) => t(FORMAT_LABEL_KEYS[f] ?? f)).join(', ')]);
+}
+
+/** Refresh last-run info and the (off-by-default) auto-sync reminder. */
+async function refreshStatus() {
+  try {
+    const status = await browser.runtime.sendMessage({ type: 'vault:status' });
+    if (status?.dueForSync === true) {
+      $('sync-status').textContent = t('syncDue', [String(status.autoSyncMinutes)]);
+      $('sync-status').hidden = false;
+    }
+    $('source-status').textContent = status?.lastRunAt
+      ? t('sourceLastRun', [new Date(status.lastRunAt).toLocaleString(), status.lastRunStatus === 'PASS' ? t('statusPass') : t('statusFailed')])
+      : t('sourceNoRuns');
+  } catch {
+    $('source-status').textContent = t('sourceNoRuns');
+  }
+}
+
+/**
+ * MV3 host permissions start OFF for freshly loaded extensions and reset on
+ * every temporary reload. Check the venice.ai grant; when missing, show the
+ * banner with a Grant button. On success the banner flips to a disabled
+ * "Access granted" state and fades after 4s — visible feedback, not just a
+ * quiet log line.
+ * @returns {Promise<boolean>} True when venice.ai access is granted.
+ */
+async function checkHostPermission() {
+  let granted = true;
+  try {
+    granted = await browser.permissions.contains(VENICE_ORIGIN);
+  } catch {
+    granted = true; // permissions API hiccup — do not block the UI on it
+  }
+  const banner = $('host-permission-banner');
+  const button = $('btn-grant-permission');
+  const status = banner.querySelector('.vv-status');
+  if (granted) {
+    banner.hidden = true;
+    return true;
+  }
+  banner.hidden = false;
+  button.disabled = false;
+  button.textContent = t('btnGrantPermission');
+  button.onclick = async () => {
+    try {
+      const ok = await browser.permissions.request(VENICE_ORIGIN);
+      button.disabled = true;
+      if (ok) {
+        banner.classList.add('vv-banner-success');
+        status.textContent = t('grantSuccess');
+        button.textContent = t('accessGranted');
+        logLine(t('grantSuccess'), 'info');
+        setTimeout(() => { banner.hidden = true; }, 4000);
+      } else {
+        status.textContent = t('grantFailed');
+        button.disabled = false;
+        logLine(t('grantFailed'), 'error');
+      }
+    } catch (e) {
+      button.disabled = false;
+      logLine(t('grantFailed'), 'error');
+    }
+  };
+  return false;
+}
+
+/** Shared export flow: disable buttons, stream progress/log, PASS gate. */
+async function runExport(messageType, startedKey) {
+  const exportButton = $('btn-export');
+  const allButton = $('btn-export-all');
+  const cancelButton = $('btn-export-cancel');
+  exportButton.disabled = true;
+  allButton.disabled = true;
+  if (messageType === 'vault:export:all') cancelButton.hidden = false;
+  setProgress(0, 0);
+  logLine(t(startedKey));
+  try {
+    const summary = await browser.runtime.sendMessage({ type: messageType });
+    setCountsSummary(summary.snapshotFileCount, summary.conversationCount, summary.messageCount, summary.status);
+    if (summary.listedCount != null) {
+      logLine(t('logBulkDone', [String(summary.conversationCount), String(summary.listedCount), String(summary.failures.length)]));
+    }
+  } catch (e) {
+    logLine(t('errUnexpected', [String(e?.message ?? e)]), 'error');
+  } finally {
+    exportButton.disabled = false;
+    allButton.disabled = false;
+    cancelButton.hidden = true;
+  }
+}
+
+function wire() {
+  $('btn-export').addEventListener('click', () => void runExport('vault:export', 'logExportStarted'));
+  $('btn-export-all').addEventListener('click', () => void runExport('vault:export:all', 'logBulkStart'));
+  $('btn-export-cancel').addEventListener('click', () => browser.runtime.sendMessage({ type: 'vault:export:all:cancel' }).catch(() => {}));
+  $('btn-options').addEventListener('click', () => browser.runtime.openOptionsPage());
+
+  browser.runtime.onMessage.addListener((message) => {
+    if (message?.type === 'vault:log') logLine(message.message, message.level ?? 'info');
+    if (message?.type === 'vault:progress') setProgress(message.value, message.max);
+    return undefined;
+  });
+}
+
+async function init() {
+  localize();
+  wire();
+  await Promise.all([refreshFormatsLine(), refreshStatus(), checkHostPermission()]);
+  logLine(t('emptyLog'));
+}
+
+void init();
