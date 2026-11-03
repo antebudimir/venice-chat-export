@@ -23,6 +23,7 @@ import { extractHtmlPayload } from '../lib/html.js';
 import { buildRedactedDiagnostics } from '../lib/redact.js';
 
 const OPTIONS_KEY = 'vault:options';
+const MY_VERSION = browser.runtime.getManifest().version;
 const LIBRARY_KEY = 'vault:library';
 const CAPTURE_PREFIX = 'vault:capture:';
 const RUN_PREFIX = 'vault:run:';
@@ -113,14 +114,24 @@ async function getActiveVeniceTab() {
 
 /** Inject the content scripts on demand, then ask the page to scrape. */
 async function scrapeTab(tab, options) {
-  try {
-    const existing = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' });
-    if (existing) return existing;
-  } catch {
-    // not injected yet — fall through
+  let response = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' }).catch(() => undefined);
+  if (!isUsableResponse(response)) {
+    await ensureContentScripts(tab.id, options);
+    response = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' }).catch(() => undefined);
   }
-  await ensureContentScripts(tab.id, options);
-  return browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' });
+  if (!isUsableResponse(response)) {
+    await log(t('logStaleReload'), 'warn');
+    await browser.tabs.reload(tab.id);
+    await waitForTabComplete(tab.id);
+    await ensureContentScripts(tab.id, options);
+    response = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' }).catch(() => undefined);
+  }
+  if (!isUsableResponse(response)) {
+    const err = new Error(response?.message ?? 'no usable scrape response');
+    err.code = 'scrape-failed';
+    throw err;
+  }
+  return response;
 }
 
 /** Resolve (or reject) when a download reaches a terminal state. */
@@ -299,7 +310,7 @@ async function waitForScrape(tabId, options = {}) {
   while (Date.now() < deadline) {
     try {
       const result = await browser.tabs.sendMessage(tabId, { type: 'vault:scrape' });
-      if (result?.ok) return result;
+      if (result?.ok && result?.v === MY_VERSION) return result;
       lastError = result?.message ?? 'scrape not ok';
     } catch (e) {
       lastError = String(e?.message ?? e);
@@ -341,13 +352,16 @@ function waitForTabComplete(tabId, options = {}) {
 }
 
 /**
- * Inject the content scripts into a tab — injected scripts do not survive
- * navigation, so every visited conversation needs a fresh injection — and
- * apply the floating-button preference.
- * @param {number} tabId
- * @param {{ floatingButton?: boolean }} options
- * @returns {Promise<void>}
+ * A scrape/list response is usable only when it came from content scripts
+ * of the CURRENT extension version. An extension update leaves old injected
+ * scripts alive in already-open pages (the injected files refuse to re-run
+ * inside the same document), and stale scripts keep answering with old
+ * capabilities — the source of truncated/missing exports after updates.
  */
+function isUsableResponse(response) {
+  return response?.ok === true && response?.v === MY_VERSION;
+}
+
 async function ensureContentScripts(tabId, options) {
   await browser.scripting.executeScript({ target: { tabId }, files: CONTENT_SCRIPT_FILES });
   await browser.tabs.sendMessage(tabId, { type: 'vault:configure', floatingButton: options.floatingButton === true }).catch(() => {});
@@ -447,22 +461,35 @@ async function runExportAll() {
     await log(t('errNoVeniceTab'), 'error');
     return { status: 'FAILED', snapshotFileCount: 0, conversationCount: 0, messageCount: 0, failures: [{ stage: 'tab', error: 'no-venice-tab' }] };
   }
-  let list;
+  let list = null;
+  let lastListError = '';
   try {
-    try {
-      list = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape-list' });
-    } catch {
-      list = null;
+    const askForList = () => browser.tabs.sendMessage(tab.id, { type: 'vault:scrape-list' })
+      .then((res) => res)
+      .catch((e) => { lastListError = String(e?.message ?? e); return null; });
+    list = await askForList();
+    if (!isUsableResponse(list)) {
+      await ensureContentScripts(tab.id, options).catch((e) => { lastListError = String(e?.message ?? e); });
+      list = await askForList();
     }
-    if (!list) {
-      await browser.scripting.executeScript({ target: { tabId: tab.id }, files: CONTENT_SCRIPT_FILES });
-      await browser.tabs.sendMessage(tab.id, { type: 'vault:configure', floatingButton: options.floatingButton === true }).catch(() => {});
-      list = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape-list' });
+    if (!isUsableResponse(list)) {
+      // stale injected scripts from an older extension version — reload once
+      lastListError = 'stale content script detected — reloading the tab';
+      await log(t('logStaleReload'), 'warn');
+      await browser.tabs.reload(tab.id);
+      await waitForTabComplete(tab.id);
+      await ensureContentScripts(tab.id, options);
+      list = await askForList();
     }
-    if (!list?.ok) throw new Error(list?.message ?? 'list scrape failed');
+    if (!list?.ok) throw new Error(list?.message ?? lastListError ?? 'list scrape failed');
   } catch (e) {
-    await log(t('errNoConversationList', [String(e?.message ?? e)]), 'error');
-    return { status: 'FAILED', snapshotFileCount: 0, conversationCount: 0, messageCount: 0, failures: [{ stage: 'list', error: String(e?.message ?? e) }] };
+    const raw = String(e?.message ?? e);
+    if (/Missing host permission/i.test(raw)) {
+      await log(t('errHostPermission'), 'error');
+    } else {
+      await log(t('errNoConversationList', [raw]), 'error');
+    }
+    return { status: 'FAILED', snapshotFileCount: 0, conversationCount: 0, messageCount: 0, failures: [{ stage: 'list', error: raw }] };
   }
   const items = list.conversations ?? [];
   if (items.length === 0) {

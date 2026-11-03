@@ -20,6 +20,7 @@
   globalThis.__veniceVaultContentLoaded = true;
 
   let floatingHost = null;
+  const VV_VERSION = browser.runtime.getManifest().version;
   const POSITION_KEY = 'vault:floatingButtonPos';
   const DEFAULT_POSITION = { right: 16, bottom: 150 };
 
@@ -146,8 +147,18 @@
   browser.runtime.onMessage.addListener((message) => {
     if (message?.type === 'vault:scrape') {
       return scrapeNow()
-        .then((result) => ({ ok: true, ...result }))
-        .catch((e) => ({ ok: false, code: e?.code ?? 'scrape-failed', message: String(e?.message ?? e) }));
+        .then((result) => ({ ok: true, v: VV_VERSION, ...result }))
+        .catch((e) => ({ ok: false, v: VV_VERSION, code: e?.code ?? 'scrape-failed', message: String(e?.message ?? e) }));
+    }
+    if (message?.type === 'vault:scrape-list') {
+      // Restore in v0.3.0-era rewrites this handler was accidentally dropped,
+      // which broke the bulk export's list step entirely.
+      if (!globalThis.VeniceVaultScrape?.scrapeConversationList) {
+        return Promise.resolve({ ok: false, v: VV_VERSION, message: 'scraper module not injected' });
+      }
+      return globalThis.VeniceVaultScrape.scrapeConversationList(message.options ?? {})
+        .then((result) => ({ ok: true, v: VV_VERSION, ...result }))
+        .catch((e) => ({ ok: false, v: VV_VERSION, message: String(e?.message ?? e) }));
     }
     if (message?.type === 'vault:configure') {
       setFloatingButton(message.floatingButton === true);

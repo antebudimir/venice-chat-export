@@ -513,5 +513,8 @@
   },
   "importStoredNote": {
     "message": "Stored in Venice Vault’s local library (browser storage — not written to disk). Use Export to produce files. Note: temporary add-on storage does not survive browser restarts."
+  },
+  "logStaleReload": {
+    "message": "This page had scripts from an older Venice Vault version — reloading the tab once to load the current scraper, then retrying."
   }
 }
