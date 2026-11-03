@@ -891,7 +891,7 @@ async function runDiagnostics() {
       autoSyncMinutes: options.autoSyncMinutes,
       formats: options.formats ?? [],
     },
-    problems: { failedRuns, passedRuns, importRunFailures: failedRuns },
+    problems: { failedRuns, passedRuns },
   });
   const name = `venice-vault-diagnostics-${filenames.timestampSlug(new Date())}.json`;
   const result = await downloadFile(name, JSON.stringify(report, null, 2) + '\n', false);
