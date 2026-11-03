@@ -171,7 +171,7 @@ async function importCommit() {
   try {
     const result = await browser.runtime.sendMessage({ type: 'vault:import:commit', files: pendingImportFiles });
     note(t('logImportCommitted', [String(result.report.added), String(result.report.extended)])
-      + ' ' + t('logImportFlaggedNote'));
+      + ' ' + t('logImportFlaggedNote') + ' ' + t('importStoredNote'));
   } catch (e) {
     note(t('errUnexpected', [String(e?.message ?? e)]));
   } finally {

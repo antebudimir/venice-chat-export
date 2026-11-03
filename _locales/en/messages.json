@@ -510,5 +510,8 @@
   },
   "btnOpenOptionsToGrant": {
     "message": "Open Options to grant access"
+  },
+  "importStoredNote": {
+    "message": "Stored in Venice Vault’s local library (browser storage — not written to disk). Use Export to produce files. Note: temporary add-on storage does not survive browser restarts."
   }
 }
