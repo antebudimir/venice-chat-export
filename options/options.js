@@ -10,7 +10,7 @@
  * two-step-confirmed data wipe (destructive action => explicit confirm).
  */
 
-const OPTIONS_KEY = 'vault:options';
+const OPTIONS_KEY = 'chatExport:options';
 const DEFAULT_OPTIONS = {
   formats: ['bundle'],
   floatingButton: false,
@@ -83,7 +83,7 @@ async function runDiagnostics() {
   button.disabled = true;
   note(t('logDiagnosticsStarted'));
   try {
-    const result = await browser.runtime.sendMessage({ type: 'vault:diagnostics' });
+    const result = await browser.runtime.sendMessage({ type: 'chatExport:diagnostics' });
     if (result?.ok) note(t('logDiagnosticsWritten', [result.filename ?? '']));
     else note(t('logFileFailed', ['diagnostics', result?.error ?? 'unknown']));
   } catch (e) {
@@ -110,7 +110,7 @@ async function clearData() {
   clearArmed = null;
   button.textContent = t('btnClearData');
   try {
-    await browser.runtime.sendMessage({ type: 'vault:clear-data' });
+    await browser.runtime.sendMessage({ type: 'chatExport:clear-data' });
     note(t('clearedData'));
     await load();
   } catch (e) {
@@ -137,7 +137,7 @@ async function importInspect(fileList) {
   }
   note(t('logInspecting', [String(pendingImportFiles.length)]));
   try {
-    const report = await browser.runtime.sendMessage({ type: 'vault:import:inspect', files: pendingImportFiles });
+    const report = await browser.runtime.sendMessage({ type: 'chatExport:import:inspect', files: pendingImportFiles });
     const reviewText = document.getElementById('import-review-text');
     reviewText.textContent = '';
     reviewText.append(t('importDryRunTitle', [String(report.conversationCount), String(report.messageCount)]));
@@ -169,7 +169,7 @@ async function importCommit() {
   if (!pendingImportFiles) return;
   document.getElementById('btn-import-commit').disabled = true;
   try {
-    const result = await browser.runtime.sendMessage({ type: 'vault:import:commit', files: pendingImportFiles });
+    const result = await browser.runtime.sendMessage({ type: 'chatExport:import:commit', files: pendingImportFiles });
     note(t('logImportCommitted', [String(result.report.added), String(result.report.extended)])
       + ' ' + t('logImportFlaggedNote') + ' ' + t('importStoredNote'));
   } catch (e) {

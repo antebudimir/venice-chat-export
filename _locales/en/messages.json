@@ -3,10 +3,10 @@
     "message": "Local archive for your own Venice.ai conversations: export, import, and lineage-aware merge. Nothing leaves your machine."
   },
   "actionTitle": {
-    "message": "Venice Vault"
+    "message": "Venice Chat Export"
   },
   "popupHeader": {
-    "message": "Venice Vault"
+    "message": "Venice Chat Export"
   },
   "openOptions": {
     "message": "Open options"
@@ -308,7 +308,7 @@
     }
   },
   "optionsTitle": {
-    "message": "Venice Vault options"
+    "message": "Venice Chat Export — Options"
   },
   "sectionCapture": {
     "message": "Capture"
@@ -317,7 +317,7 @@
     "message": "Show floating button on venice.ai"
   },
   "optFloatingButtonDesc": {
-    "message": "A small 'Archive with Venice Vault' button in the page corner. Off by default; the page is otherwise untouched."
+    "message": "A small 'Archive with Venice Chat Export' button in the page corner. Off by default; the page is otherwise untouched."
   },
   "sectionExport": {
     "message": "Export formats"
@@ -335,7 +335,7 @@
     "message": "HTML (self-contained, for archiving)"
   },
   "formatBundle": {
-    "message": "Bundle (vault migration — re-imports into Venice Vault, includes lineage)"
+    "message": "Bundle (vault migration — re-imports into Venice Chat Export, includes lineage)"
   },
   "optFilenameTemplate": {
     "message": "Filename template"
@@ -494,10 +494,10 @@
     "message": "venice.ai access granted — exports will work now."
   },
   "grantFailed": {
-    "message": "Access was not granted. You can also enable it in about:addons → Venice Vault → Permissions."
+    "message": "Access was not granted. You can also enable it in about:addons → Venice Chat Export → Permissions."
   },
   "errHostPermission": {
-    "message": "MISSING HOST PERMISSION: Firefox has not granted venice.ai access for this extension version. Fix: about:addons → Venice Vault → Permissions → enable \"Access your data for venice.ai\" (this resets on every temporary-add-on reload), or use the Grant button in the popup. Nothing was stored from this run."
+    "message": "MISSING HOST PERMISSION: Firefox has not granted venice.ai access for this extension version. Fix: about:addons → Venice Chat Export → Permissions → enable \"Access your data for venice.ai\" (this resets on every temporary-add-on reload), or use the Grant button in the popup. Nothing was stored from this run."
   },
   "accessGranted": {
     "message": "Access granted"
@@ -509,10 +509,10 @@
     "message": "Not granted yet — exports and the floating button need this."
   },
   "importStoredNote": {
-    "message": "Stored in Venice Vault’s local library (browser storage — not written to disk). Use Export to produce files. Note: temporary add-on storage does not survive browser restarts."
+    "message": "Stored in Venice Chat Export’s local library (browser storage — not written to disk). Use Export to produce files. Note: temporary add-on storage does not survive browser restarts."
   },
   "logStaleReload": {
-    "message": "This page had scripts from an older Venice Vault version — reloading the tab once to load the current scraper, then retrying."
+    "message": "This page had scripts from an older Venice Chat Export version — reloading the tab once to load the current scraper, then retrying."
   },
   "btnOpenOptions": {
     "message": "Open options"

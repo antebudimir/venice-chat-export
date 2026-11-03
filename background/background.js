@@ -22,9 +22,9 @@ import { parseImport, detectFormat, normalizeConversation } from '../lib/parse.j
 import { extractHtmlPayload } from '../lib/html.js';
 import { buildRedactedDiagnostics } from '../lib/redact.js';
 
-const OPTIONS_KEY = 'vault:options';
+const OPTIONS_KEY = 'chatExport:options';
 const MY_VERSION = browser.runtime.getManifest().version;
-const CURRENT_RUN_KEY = 'vault:currentRun';
+const CURRENT_RUN_KEY = 'chatExport:currentRun';
 const RUN_LOG_LIMIT = 50;
 let activeRun = null;
 let keepAliveInterval = null;
@@ -51,9 +51,9 @@ function stopKeepAlive() {
 // Worker start time — used to tell runs begun by THIS worker instance apart
 // from orphaned runs left behind by a previous (terminated) instance.
 const WORKER_STARTED_AT = Date.now();
-const LIBRARY_KEY = 'vault:library';
-const CAPTURE_PREFIX = 'vault:capture:';
-const RUN_PREFIX = 'vault:run:';
+const LIBRARY_KEY = 'chatExport:library';
+const CAPTURE_PREFIX = 'chatExport:capture:';
+const RUN_PREFIX = 'chatExport:run:';
 const CONTENT_SCRIPT_FILES = ['lib/scrape.js', 'content/content.js'];
 const VENICE_URL = /^https:\/\/venice\.ai\//;
 const DEFAULT_OPTIONS = {
@@ -78,7 +78,7 @@ async function log(message, level = 'info') {
     await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
   }
   try {
-    await browser.runtime.sendMessage({ type: 'vault:log', message, level });
+    await browser.runtime.sendMessage({ type: 'chatExport:log', message, level });
   } catch {
     // popup closed — the run summary in storage.local keeps the record
   }
@@ -92,7 +92,7 @@ async function progress(value, max) {
     await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
   }
   try {
-    await browser.runtime.sendMessage({ type: 'vault:progress', value, max });
+    await browser.runtime.sendMessage({ type: 'chatExport:progress', value, max });
   } catch {
     // popup closed
   }
@@ -196,7 +196,7 @@ browser.storage.onChanged.addListener((changes, area) => {
       if (options.floatingButton === true) {
         ensureContentScripts(tab.id, options).catch(() => {});
       } else {
-        browser.tabs.sendMessage(tab.id, { type: 'vault:configure', floatingButton: false }).catch(() => {});
+        browser.tabs.sendMessage(tab.id, { type: 'chatExport:configure', floatingButton: false }).catch(() => {});
       }
     }
   });
@@ -210,17 +210,17 @@ async function getActiveVeniceTab() {
 
 /** Inject the content scripts on demand, then ask the page to scrape. */
 async function scrapeTab(tab, options) {
-  let response = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' }).catch(() => undefined);
+  let response = await browser.tabs.sendMessage(tab.id, { type: 'chatExport:scrape' }).catch(() => undefined);
   if (!isUsableResponse(response)) {
     await ensureContentScripts(tab.id, options);
-    response = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' }).catch(() => undefined);
+    response = await browser.tabs.sendMessage(tab.id, { type: 'chatExport:scrape' }).catch(() => undefined);
   }
   if (!isUsableResponse(response)) {
     await log(t('logStaleReload'), 'warn');
     await browser.tabs.reload(tab.id);
     await waitForTabComplete(tab.id);
     await ensureContentScripts(tab.id, options);
-    response = await browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' }).catch(() => undefined);
+    response = await browser.tabs.sendMessage(tab.id, { type: 'chatExport:scrape' }).catch(() => undefined);
   }
   if (!isUsableResponse(response)) {
     const err = new Error(response?.message ?? 'no usable scrape response');
@@ -405,7 +405,7 @@ async function waitForScrape(tabId, options = {}) {
   let lastError = 'no response from the page';
   while (Date.now() < deadline) {
     try {
-      const result = await browser.tabs.sendMessage(tabId, { type: 'vault:scrape' });
+      const result = await browser.tabs.sendMessage(tabId, { type: 'chatExport:scrape' });
       if (result?.ok && result?.v === MY_VERSION) return result;
       lastError = result?.message ?? 'scrape not ok';
     } catch (e) {
@@ -460,7 +460,7 @@ function isUsableResponse(response) {
 
 async function ensureContentScripts(tabId, options) {
   await browser.scripting.executeScript({ target: { tabId }, files: CONTENT_SCRIPT_FILES });
-  await browser.tabs.sendMessage(tabId, { type: 'vault:configure', floatingButton: options.floatingButton === true }).catch(() => {});
+  await browser.tabs.sendMessage(tabId, { type: 'chatExport:configure', floatingButton: options.floatingButton === true }).catch(() => {});
 }
 
 /**
@@ -561,7 +561,7 @@ async function runExportAll() {
   let list = null;
   let lastListError = '';
   try {
-    const askForList = () => browser.tabs.sendMessage(tab.id, { type: 'vault:scrape-list' })
+    const askForList = () => browser.tabs.sendMessage(tab.id, { type: 'chatExport:scrape-list' })
       .then((res) => res)
       .catch((e) => { lastListError = String(e?.message ?? e); return null; });
     list = await askForList();
@@ -893,7 +893,7 @@ async function runDiagnostics() {
     },
     problems: { failedRuns, passedRuns },
   });
-  const name = `venice-vault-diagnostics-${filenames.timestampSlug(new Date())}.json`;
+  const name = `venice-chat-export-diagnostics-${filenames.timestampSlug(new Date())}.json`;
   const result = await downloadFile(name, JSON.stringify(report, null, 2) + '\n', false);
   if (result.ok) await log(t('logDiagnosticsWritten', [result.filename ?? name]));
   else await log(t('logFileFailed', [name, result.error ?? '']), 'error');
@@ -938,17 +938,17 @@ async function clearData() {
 /** Message router — Firefox supports Promise-returning listeners. */
 browser.runtime.onMessage.addListener((message) => {
   switch (message?.type) {
-    case 'vault:ping': return Promise.resolve({ ok: true, v: MY_VERSION });
-    case 'vault:export': return runExport();
-    case 'vault:export:all': return runExportAll();
-    case 'vault:export:all:cancel':
+    case 'chatExport:ping': return Promise.resolve({ ok: true, v: MY_VERSION });
+    case 'chatExport:export': return runExport();
+    case 'chatExport:export:all': return runExportAll();
+    case 'chatExport:export:all:cancel':
       bulkCancelRequested = true;
       return Promise.resolve({ ok: true });
-    case 'vault:import:inspect': return runImportInspect(message.files);
-    case 'vault:import:commit': return runImportCommit(message.files);
-    case 'vault:diagnostics': return runDiagnostics();
-    case 'vault:status': return getStatus();
-    case 'vault:clear-data': return clearData();
+    case 'chatExport:import:inspect': return runImportInspect(message.files);
+    case 'chatExport:import:commit': return runImportCommit(message.files);
+    case 'chatExport:diagnostics': return runDiagnostics();
+    case 'chatExport:status': return getStatus();
+    case 'chatExport:clear-data': return clearData();
     default: return undefined;
   }
 });

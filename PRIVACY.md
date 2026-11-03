@@ -2,7 +2,7 @@
 
 **No data is collected or transmitted. All processing is local.**
 
-Venice Vault makes no network requests of its own. It reads only the venice.ai conversation page you explicitly export from, and writes only to:
+Venice Chat Export makes no network requests of its own. It reads only the venice.ai conversation page you explicitly export from, and writes only to:
 
 - `browser.storage.local` — captures, immutable conversation versions, flagged lineage conflicts, run summaries, and your options. This never leaves your browser profile.
 - Your Downloads folder (or a folder you explicitly choose per save) — the export files themselves.

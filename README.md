@@ -1,8 +1,6 @@
-# Venice Vault
+# Venice Chat Export
 
 v0.3.0. A local-only Firefox extension (MV3) that archives **your own Venice.ai conversations**: exports them to timestamped files in several formats, and re-imports them on another machine with a lineage-aware merge. It uploads nothing and contacts nothing — every byte stays on your machine.
-
-This project is a companion to the [Venice Local Archive](../README.md) toolkit and deliberately shares its vocabulary and safety posture. It is not affiliated with or endorsed by Venice.ai.
 
 ## Install (sideload via about:debugging)
 
@@ -28,7 +26,7 @@ CI (`.github/workflows/ci.yml`) runs `npm test` and `npm run lint` on Linux. The
 ## Permissions — rationale
 
 | Permission | Why it is needed |
-|---|---|
+| --- | --- |
 | `activeTab` | Read the conversation in the tab you explicitly triggered the export from. No background access to any tab. |
 | `scripting` | Inject `lib/scrape.js` + `content/content.js` on demand into that one tab. Nothing is declared statically. |
 | `storage` | Keep captures, immutable conversation versions, flagged conflicts, and your options locally. |
@@ -68,7 +66,7 @@ The newest capture is not the whole archive: older immutable runs remain even wh
 Records carry a stable logical ID plus a content hash (SHA-256 over canonical JSON; the conversation hash digests the ordered per-message hashes). Classification, used verbatim:
 
 | Condition (same logical ID) | Kind |
-|---|---|
+| --- | --- |
 | same ID, same hash | unchanged — an occurrence is recorded |
 | same ID, earlier ordered message prefix intact, messages appended | strict extension — new immutable version |
 | shared opening content without proven identity | prefix — flagged for review |
@@ -82,7 +80,7 @@ Records carry a stable logical ID plus a content hash (SHA-256 over canonical JS
 Each run writes separate timestamped files (default template `venice-{date}T{time}-{title}.{ext}`):
 
 - **JSON (backup)** — canonical, lossless: `{ schemaVersion, exportedAt, source, conversations: [{ id, contentHash, title, createdAt, updatedAt, model, messages: [{ role, content, ts, hash }] }] }`. `null` fields are schema placeholders: the key is known, the source did not expose it.
-- **Bundle (vault migration — re-imports into Venice Vault, includes lineage)** — single JSON with conversations *plus* version history, occurrence counts, and flagged conflicts. **This is the format to export before an OS reinstall or machine move**; importing it restores lineage, not just conversations. Stored versions are hash-validated on import; invalid entries are skipped and counted, never silently stored.
+- **Bundle (vault migration — re-imports into Venice Chat Export, includes lineage)** — single JSON with conversations *plus* version history, occurrence counts, and flagged conflicts. **This is the format to export before an OS reinstall or machine move**; importing it restores lineage, not just conversations. Stored versions are hash-validated on import; invalid entries are skipped and counted, never silently stored.
 - **Markdown** — one file per conversation; YAML front-matter (title, dates, model, id, hash), `## Role` headings, fenced code preserved.
 - **HTML** — self-contained, no external assets, sanitized, with the canonical JSON embedded for lossless re-import; suitable for archiving/printing.
 
@@ -108,7 +106,7 @@ Limits, stated honestly: this exports what the Venice web app *shows in your con
 
 ## Auto-sync
 
-Off by default, and honestly named: it is a *reminder* shown when you open the popup. The extension requests no `alarms` permission and never runs in the background on its own.
+Off by default, it's a *reminder* shown when you open the popup. The extension requests no `alarms` permission and never runs in the background on its own.
 
 ## Privacy
 
@@ -117,15 +115,6 @@ See [PRIVACY.md](PRIVACY.md): no data is collected or transmitted; all processin
 ## Licence
 
 AGPL-3.0-or-later — see [LICENSE](LICENSE). Copyright (C) 2026 Ante Budimir.
-
-### Why AGPL
-
-The network clause is dormant for a purely local extension: there is no server to expose source for. It is here for consistency with the author's other projects, and because it closes the hosted-fork loophole: if a server component is ever added (say, a sync relay), anyone offering that service over a network must release its source under the same licence.
-
-## TODO
-
-- **Selector calibration (the one open input):** `lib/scrape.js` selectors are best-effort pending one-time calibration against the live Venice.ai DOM. The matched selector tier is reported to the activity log, so calibration against the real site is a single pass: open a conversation, export, read the logged tier, tighten tier-1/2 selectors if the generic heuristic (tier 3) matched.
-- Auto-sync currently reminds via the popup only; revisit if a scheduling permission ever becomes acceptable.
 
 ## Platform scope
 

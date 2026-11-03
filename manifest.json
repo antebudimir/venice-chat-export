@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Venice Vault \u2014 local archive for Venice.ai",
-  "short_name": "Venice Vault",
+  "name": "Venice Chat Export \u2014 archive for Venice.ai",
+  "short_name": "Venice Chat Export",
   "version": "0.6.0",
   "description": "__MSG_extensionDescription__",
   "author": "Ante Budimir",
   "default_locale": "en",
   "browser_specific_settings": {
     "gecko": {
-      "id": "venice-vault@antebudimir.dev",
+      "id": "venice-chat-backup@antebudimir.dev",
       "strict_min_version": "153.0",
       "data_collection_permissions": {
         "required": [

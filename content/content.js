@@ -16,20 +16,20 @@
  */
 (() => {
   'use strict';
-  if (globalThis.__veniceVaultContentLoaded) return;
-  globalThis.__veniceVaultContentLoaded = true;
+  if (globalThis.__veniceChatExportContentLoaded) return;
+  globalThis.__veniceChatExportContentLoaded = true;
 
   let floatingHost = null;
   const VV_VERSION = browser.runtime.getManifest().version;
-  const POSITION_KEY = 'vault:floatingButtonPos';
+  const POSITION_KEY = 'chatExport:floatingButtonPos';
   const DEFAULT_POSITION = { right: 16, bottom: 150 };
 
   /** Run the scraper injected alongside this file. */
   function scrapeNow() {
-    if (!globalThis.VeniceVaultScrape) {
+    if (!globalThis.VeniceChatExportScrape) {
       return Promise.reject(new Error('scraper module not injected'));
     }
-    return globalThis.VeniceVaultScrape.scrapePage();
+    return globalThis.VeniceChatExportScrape.scrapePage();
   }
 
   /** Clamp a stored/dragged {right,bottom} offset to the current viewport. */
@@ -108,7 +108,7 @@
     });
   }
 
-  /** Show or hide the floating "Archive with Venice Vault" button. */
+  /** Show or hide the floating "Archive with Venice Chat Export" button. */
   function setFloatingButton(enabled) {
     if (!enabled && floatingHost) {
       floatingHost.remove();
@@ -117,7 +117,7 @@
     }
     if (!enabled || floatingHost) return;
     const host = document.createElement('div');
-    host.id = 'venice-vault-floating-host';
+    host.id = 'venice-chat-export-floating-host';
     const shadow = host.attachShadow({ mode: 'closed' });
     const style = document.createElement('style');
     style.textContent =
@@ -129,10 +129,10 @@
       'button:focus-visible{outline:2px solid #ffffff;outline-offset:2px}';
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = 'Archive with Venice Vault';
+    button.textContent = 'Archive with Venice Chat Export';
     button.addEventListener('click', () => {
       try {
-        browser.runtime.sendMessage({ type: 'vault:export' }).catch(() => {});
+        browser.runtime.sendMessage({ type: 'chatExport:export' }).catch(() => {});
       } catch {
         // extension is being reloaded/uninstalled; nothing to report to
       }
@@ -145,22 +145,22 @@
   }
 
   browser.runtime.onMessage.addListener((message) => {
-    if (message?.type === 'vault:scrape') {
+    if (message?.type === 'chatExport:scrape') {
       return scrapeNow()
         .then((result) => ({ ok: true, v: VV_VERSION, ...result }))
         .catch((e) => ({ ok: false, v: VV_VERSION, code: e?.code ?? 'scrape-failed', message: String(e?.message ?? e) }));
     }
-    if (message?.type === 'vault:scrape-list') {
+    if (message?.type === 'chatExport:scrape-list') {
       // Restore in v0.3.0-era rewrites this handler was accidentally dropped,
       // which broke the bulk export's list step entirely.
-      if (!globalThis.VeniceVaultScrape?.scrapeConversationList) {
+      if (!globalThis.VeniceChatExportScrape?.scrapeConversationList) {
         return Promise.resolve({ ok: false, v: VV_VERSION, message: 'scraper module not injected' });
       }
-      return globalThis.VeniceVaultScrape.scrapeConversationList(message.options ?? {})
+      return globalThis.VeniceChatExportScrape.scrapeConversationList(message.options ?? {})
         .then((result) => ({ ok: true, v: VV_VERSION, ...result }))
         .catch((e) => ({ ok: false, v: VV_VERSION, message: String(e?.message ?? e) }));
     }
-    if (message?.type === 'vault:configure') {
+    if (message?.type === 'chatExport:configure') {
       setFloatingButton(message.floatingButton === true);
       return Promise.resolve({ ok: true });
     }

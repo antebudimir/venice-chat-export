@@ -12,9 +12,9 @@
  * always rendered together so no count can imply another.
  */
 
-const OPTIONS_KEY = 'vault:options';
+const OPTIONS_KEY = 'chatExport:options';
 const VENICE_ORIGIN = { origins: ['https://venice.ai/*'] };
-const CURRENT_RUN_KEY = 'vault:currentRun';
+const CURRENT_RUN_KEY = 'chatExport:currentRun';
 const FORMAT_LABEL_KEYS = {
   json: 'formatJson', markdown: 'formatMarkdown', html: 'formatHtml', bundle: 'formatBundle',
 };
@@ -70,7 +70,7 @@ async function refreshFormatsLine() {
 /** Refresh last-run info and the (off-by-default) auto-sync reminder. */
 async function refreshStatus() {
   try {
-    const status = await browser.runtime.sendMessage({ type: 'vault:status' });
+    const status = await browser.runtime.sendMessage({ type: 'chatExport:status' });
     if (status?.dueForSync === true) {
       $('sync-status').textContent = t('syncDue', [String(status.autoSyncMinutes)]);
       $('sync-status').hidden = false;
@@ -117,8 +117,8 @@ let liveListener = null;
 function subscribeLive() {
   if (liveListener) return;
   liveListener = (message) => {
-    if (message?.type === 'vault:log') logLine(message.message, message.level ?? 'info');
-    if (message?.type === 'vault:progress') setProgress(message.value, message.max);
+    if (message?.type === 'chatExport:log') logLine(message.message, message.level ?? 'info');
+    if (message?.type === 'chatExport:progress') setProgress(message.value, message.max);
   };
   browser.runtime.onMessage.addListener(liveListener);
 }
@@ -141,7 +141,7 @@ async function restoreCurrentRun() {
   if (run.status === 'running') {
     let alive = true;
     try {
-      await browser.runtime.sendMessage({ type: 'vault:ping' });
+      await browser.runtime.sendMessage({ type: 'chatExport:ping' });
     } catch {
       alive = false; // background worker died mid-run
     }
@@ -169,7 +169,7 @@ async function runExport(messageType, startedKey) {
   const cancelButton = $('btn-export-cancel');
   exportButton.disabled = true;
   allButton.disabled = true;
-  if (messageType === 'vault:export:all') cancelButton.hidden = false;
+  if (messageType === 'chatExport:export:all') cancelButton.hidden = false;
   setProgress(0, 0);
   subscribeLive();
   logLine(t(startedKey));
@@ -190,9 +190,9 @@ async function runExport(messageType, startedKey) {
 }
 
 function wire() {
-  $('btn-export').addEventListener('click', () => void runExport('vault:export', 'logExportStarted'));
-  $('btn-export-all').addEventListener('click', () => void runExport('vault:export:all', 'logBulkStart'));
-  $('btn-export-cancel').addEventListener('click', () => browser.runtime.sendMessage({ type: 'vault:export:all:cancel' }).catch(() => {}));
+  $('btn-export').addEventListener('click', () => void runExport('chatExport:export', 'logExportStarted'));
+  $('btn-export-all').addEventListener('click', () => void runExport('chatExport:export:all', 'logBulkStart'));
+  $('btn-export-cancel').addEventListener('click', () => browser.runtime.sendMessage({ type: 'chatExport:export:all:cancel' }).catch(() => {}));
   $('btn-options').addEventListener('click', () => browser.runtime.openOptionsPage());
 
 }
