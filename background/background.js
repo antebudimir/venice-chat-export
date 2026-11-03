@@ -24,6 +24,9 @@ import { buildRedactedDiagnostics } from '../lib/redact.js';
 
 const OPTIONS_KEY = 'vault:options';
 const MY_VERSION = browser.runtime.getManifest().version;
+const CURRENT_RUN_KEY = 'vault:currentRun';
+const RUN_LOG_LIMIT = 50;
+let activeRun = null;
 const LIBRARY_KEY = 'vault:library';
 const CAPTURE_PREFIX = 'vault:capture:';
 const RUN_PREFIX = 'vault:run:';
@@ -44,6 +47,12 @@ function t(key, substitutions) {
 
 /** Log to the popup's quiet log (no-op when the popup is closed). */
 async function log(message, level = 'info') {
+  const entry = { ts: new Date().toLocaleTimeString(), message, level };
+  if (activeRun) {
+    activeRun.log.push(entry);
+    if (activeRun.log.length > RUN_LOG_LIMIT) activeRun.log.shift();
+    await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
+  }
   try {
     await browser.runtime.sendMessage({ type: 'vault:log', message, level });
   } catch {
@@ -53,11 +62,50 @@ async function log(message, level = 'info') {
 
 /** Report determinate progress to the popup (no-op when closed). */
 async function progress(value, max) {
+  if (activeRun) {
+    activeRun.done = value;
+    activeRun.total = max;
+    await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
+  }
   try {
     await browser.runtime.sendMessage({ type: 'vault:progress', value, max });
   } catch {
     // popup closed
   }
+}
+
+/** Begin tracking a bulk run: writes vault:currentRun for popup restore. */
+async function beginCurrentRun(kind, total) {
+  activeRun = {
+    kind,
+    phase: 'visit',
+    done: 0,
+    total: total ?? 0,
+    startedAt: new Date().toISOString(),
+    status: 'running',
+    log: [],
+  };
+  await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
+}
+
+/** Merge a patch into the tracked run and persist. */
+async function updateCurrentRun(patch) {
+  if (!activeRun) return;
+  Object.assign(activeRun, patch);
+  await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
+}
+
+/** Finalize the tracked run: one finalized object kept, no accumulation. */
+async function finalizeCurrentRun(summary) {
+  if (!activeRun) return;
+  activeRun.status = summary.status;
+  activeRun.phase = 'done';
+  activeRun.finishedAt = summary.finishedAt ?? new Date().toISOString();
+  activeRun.snapshotFileCount = summary.snapshotFileCount ?? 0;
+  activeRun.conversationCount = summary.conversationCount ?? 0;
+  activeRun.messageCount = summary.messageCount ?? 0;
+  await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
+  activeRun = null;
 }
 
 /** Merge stored options over defaults. */
@@ -430,6 +478,7 @@ async function serializeAndWrite(conversations, options, startedAt, library, run
  * log PASS/FAILED, and return the summary object.
  */
 async function finishRun(startedAt, slug, summary) {
+  await finalizeCurrentRun(summary);
   await browser.storage.local.set({ [RUN_PREFIX + slug]: summary });
   const library = await getLibrary();
   library.runs.push({
@@ -497,6 +546,8 @@ async function runExportAll() {
     return { status: 'FAILED', snapshotFileCount: 0, conversationCount: 0, messageCount: 0, failures: [{ stage: 'list', error: 'zero-links' }] };
   }
   await log(t('logBulkListScraped', [String(items.length)]));
+  await beginCurrentRun('export-all', items.length);
+  await updateCurrentRun({ phase: 'visit' });
 
   const conversations = [];
   const scrapeFailures = [];
@@ -595,6 +646,7 @@ async function runExportAll() {
   await log(t('logMerged', [String(plan.report.added), String(plan.report.unchanged), String(plan.report.extended), String(plan.report.prefix), String(plan.report.branch)]));
 
   const bulkRunTitle = conversations.length === 1 ? (conversations[0].title || 'export-all') : 'export-all';
+  await updateCurrentRun({ phase: 'write' });
   const writePhase = await serializeAndWrite(conversations, options, startedAt, library, bulkRunTitle);
   const failures = [...scrapeFailures, ...writePhase.failures];
   const scrapedCount = conversations.length;

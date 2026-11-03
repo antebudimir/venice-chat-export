@@ -14,6 +14,7 @@
 
 const OPTIONS_KEY = 'vault:options';
 const VENICE_ORIGIN = { origins: ['https://venice.ai/*'] };
+const CURRENT_RUN_KEY = 'vault:currentRun';
 const FORMAT_LABEL_KEYS = {
   json: 'formatJson', markdown: 'formatMarkdown', html: 'formatHtml', bundle: 'formatBundle',
 };
@@ -109,6 +110,45 @@ async function checkHostPermission() {
   return false;
 }
 
+/** Live event subscription — attached only while a run is in flight. */
+let liveListener = null;
+function subscribeLive() {
+  if (liveListener) return;
+  liveListener = (message) => {
+    if (message?.type === 'vault:log') logLine(message.message, message.level ?? 'info');
+    if (message?.type === 'vault:progress') setProgress(message.value, message.max);
+  };
+  browser.runtime.onMessage.addListener(liveListener);
+}
+function unsubscribeLive() {
+  if (!liveListener) return;
+  browser.runtime.onMessage.removeListener(liveListener);
+  liveListener = null;
+}
+
+/** Render a persisted run from vault:currentRun on popup open. */
+async function restoreCurrentRun() {
+  let run = null;
+  try {
+    run = (await browser.storage.local.get(CURRENT_RUN_KEY))[CURRENT_RUN_KEY];
+  } catch {
+    return false;
+  }
+  if (!run) return false;
+  for (const entry of run.log ?? []) logLine(entry.message, entry.level ?? 'info');
+  if (run.status === 'running') {
+    setProgress(run.done ?? 0, run.total ?? 0);
+    $('btn-export').disabled = true;
+    $('btn-export-all').disabled = true;
+    $('btn-export-cancel').hidden = false;
+    subscribeLive();
+    logLine(t('runRestoredLive'));
+    return true;
+  }
+  setCountsSummary(run.snapshotFileCount ?? 0, run.conversationCount ?? 0, run.messageCount ?? 0, run.status);
+  return true;
+}
+
 /** Shared export flow: disable buttons, stream progress/log, PASS gate. */
 async function runExport(messageType, startedKey) {
   const exportButton = $('btn-export');
@@ -118,6 +158,7 @@ async function runExport(messageType, startedKey) {
   allButton.disabled = true;
   if (messageType === 'vault:export:all') cancelButton.hidden = false;
   setProgress(0, 0);
+  subscribeLive();
   logLine(t(startedKey));
   try {
     const summary = await browser.runtime.sendMessage({ type: messageType });
@@ -128,6 +169,7 @@ async function runExport(messageType, startedKey) {
   } catch (e) {
     logLine(t('errUnexpected', [String(e?.message ?? e)]), 'error');
   } finally {
+    unsubscribeLive();
     exportButton.disabled = false;
     allButton.disabled = false;
     cancelButton.hidden = true;
@@ -140,18 +182,14 @@ function wire() {
   $('btn-export-cancel').addEventListener('click', () => browser.runtime.sendMessage({ type: 'vault:export:all:cancel' }).catch(() => {}));
   $('btn-options').addEventListener('click', () => browser.runtime.openOptionsPage());
 
-  browser.runtime.onMessage.addListener((message) => {
-    if (message?.type === 'vault:log') logLine(message.message, message.level ?? 'info');
-    if (message?.type === 'vault:progress') setProgress(message.value, message.max);
-    return undefined;
-  });
 }
 
 async function init() {
   localize();
   wire();
   await Promise.all([refreshFormatsLine(), refreshStatus(), checkHostPermission()]);
-  logLine(t('emptyLog'));
+  const restored = await restoreCurrentRun();
+  if (!restored) logLine(t('emptyLog'));
 }
 
 void init();

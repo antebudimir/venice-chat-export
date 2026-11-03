@@ -516,5 +516,8 @@
   },
   "btnOpenOptions": {
     "message": "Open options"
+  },
+  "runRestoredLive": {
+    "message": "Reattached to the running export — progress and log restored."
   }
 }
