@@ -137,6 +137,17 @@ async function restoreCurrentRun() {
   if (!run) return false;
   for (const entry of run.log ?? []) logLine(entry.message, entry.level ?? 'info');
   if (run.status === 'running') {
+    let alive = true;
+    try {
+      await browser.runtime.sendMessage({ type: 'vault:ping' });
+    } catch {
+      alive = false; // background worker died mid-run
+    }
+    if (!alive) {
+      logLine(t('runInterrupted'), 'error');
+      setCountsSummary(run.snapshotFileCount ?? 0, run.conversationCount ?? 0, run.messageCount ?? 0, 'FAILED');
+      return true;
+    }
     setProgress(run.done ?? 0, run.total ?? 0);
     $('btn-export').disabled = true;
     $('btn-export-all').disabled = true;

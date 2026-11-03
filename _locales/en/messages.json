@@ -519,5 +519,8 @@
   },
   "runRestoredLive": {
     "message": "Reattached to the running export — progress and log restored."
+  },
+  "runInterrupted": {
+    "message": "This run was interrupted (the background worker restarted mid-run). Nothing was lost — run Export all again to continue."
   }
 }

@@ -27,6 +27,30 @@ const MY_VERSION = browser.runtime.getManifest().version;
 const CURRENT_RUN_KEY = 'vault:currentRun';
 const RUN_LOG_LIMIT = 50;
 let activeRun = null;
+let keepAliveInterval = null;
+
+/**
+ * Firefox terminates background event pages after ~30s of inactivity, and
+ * long await loops do not reset that timer. A periodic lightweight ping
+ * keeps the worker alive for the whole duration of a bulk run.
+ */
+function startKeepAlive() {
+  if (keepAliveInterval) return;
+  keepAliveInterval = setInterval(() => {
+    browser.runtime.getPlatformInfo().catch(() => {});
+  }, 20000);
+}
+
+function stopKeepAlive() {
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+    keepAliveInterval = null;
+  }
+}
+
+// Worker start time — used to tell runs begun by THIS worker instance apart
+// from orphaned runs left behind by a previous (terminated) instance.
+const WORKER_STARTED_AT = Date.now();
 const LIBRARY_KEY = 'vault:library';
 const CAPTURE_PREFIX = 'vault:capture:';
 const RUN_PREFIX = 'vault:run:';
@@ -76,6 +100,7 @@ async function progress(value, max) {
 
 /** Begin tracking a bulk run: writes vault:currentRun for popup restore. */
 async function beginCurrentRun(kind, total) {
+  startKeepAlive();
   activeRun = {
     kind,
     phase: 'visit',
@@ -106,7 +131,30 @@ async function finalizeCurrentRun(summary) {
   activeRun.messageCount = summary.messageCount ?? 0;
   await browser.storage.local.set({ [CURRENT_RUN_KEY]: activeRun }).catch(() => {});
   activeRun = null;
+  stopKeepAlive();
 }
+
+/**
+ * Orphan cleanup: if the worker restarts while a run is still marked
+ * 'running', that run died with the previous worker instance. Finalize it
+ * as INTERRUPTED so the popup never shows a dead run as cancellable.
+ */
+(async () => {
+  try {
+    if (activeRun) return;
+    const stored = (await browser.storage.local.get(CURRENT_RUN_KEY))[CURRENT_RUN_KEY];
+    if (stored?.status !== 'running') return;
+    if (Date.parse(stored.startedAt ?? '') >= WORKER_STARTED_AT) return; // begun by this worker session
+    stored.status = 'INTERRUPTED';
+    stored.phase = 'interrupted';
+    stored.finishedAt = new Date().toISOString();
+    stored.log.push({ ts: new Date().toLocaleTimeString(), message: 'Background worker restarted mid-run — the run was interrupted. Nothing was lost; run Export all again.', level: 'error' });
+    if (stored.log.length > RUN_LOG_LIMIT) stored.log.shift();
+    await browser.storage.local.set({ [CURRENT_RUN_KEY]: stored }).catch(() => {});
+  } catch {
+    // best effort — orphan detection is advisory only
+  }
+})();
 
 /** Merge stored options over defaults. */
 async function getOptions() {
@@ -891,6 +939,7 @@ async function clearData() {
 browser.runtime.onMessage.addListener((message) => {
   switch (message?.type) {
     case 'vault:open-options': return browser.runtime.openOptionsPage();
+    case 'vault:ping': return Promise.resolve({ ok: true, v: MY_VERSION });
     case 'vault:export': return runExport();
     case 'vault:export:all': return runExportAll();
     case 'vault:export:all:cancel':
