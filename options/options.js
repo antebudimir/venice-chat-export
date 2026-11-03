@@ -196,7 +196,7 @@ async function refreshAccess() {
   const button = document.getElementById('btn-access-grant');
   if (granted) {
     status.textContent = t('accessGranted');
-    button.disabled = true;
+    button.hidden = true;
   } else {
     status.textContent = t('accessNotGranted');
     button.disabled = false;
