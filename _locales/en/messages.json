@@ -335,7 +335,7 @@
     "message": "HTML (self-contained, for archiving)"
   },
   "formatBundle": {
-    "message": "Bundle (migration — re-importable, includes lineage)"
+    "message": "Bundle (vault migration — re-imports into Venice Vault, includes lineage)"
   },
   "optFilenameTemplate": {
     "message": "Filename template"

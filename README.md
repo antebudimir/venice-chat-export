@@ -84,7 +84,7 @@ Records carry a stable logical ID plus a content hash (SHA-256 over canonical JS
 Each run writes separate timestamped files (default template `venice-{date}T{time}-{title}.{ext}`):
 
 - **JSON (backup)** — canonical, lossless: `{ schemaVersion, exportedAt, source, conversations: [{ id, contentHash, title, createdAt, updatedAt, model, messages: [{ role, content, ts, hash }] }] }`. `null` fields are schema placeholders: the key is known, the source did not expose it.
-- **Bundle (migration — re-importable, includes lineage)** — single JSON with conversations *plus* version history, occurrence counts, and flagged conflicts. **This is the format to export before an OS reinstall or machine move**; importing it restores lineage, not just conversations. Stored versions are hash-validated on import; invalid entries are skipped and counted, never silently stored.
+- **Bundle (vault migration — re-imports into Venice Vault, includes lineage)** — single JSON with conversations *plus* version history, occurrence counts, and flagged conflicts. **This is the format to export before an OS reinstall or machine move**; importing it restores lineage, not just conversations. Stored versions are hash-validated on import; invalid entries are skipped and counted, never silently stored.
 - **Markdown** — one file per conversation; YAML front-matter (title, dates, model, id, hash), `## Role` headings, fenced code preserved.
 - **HTML** — self-contained, no external assets, sanitized, with the canonical JSON embedded for lossless re-import; suitable for archiving/printing.
 
