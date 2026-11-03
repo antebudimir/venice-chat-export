@@ -71,6 +71,40 @@ async function getLibrary() {
   return stored[LIBRARY_KEY] ?? lineage.emptyLibrary();
 }
 
+/**
+ * Auto-inject on every venice.ai page load so the (optional) floating
+ * button appears without requiring an export first. Injected scripts do not
+ * survive navigation, hence the per-load re-injection. No-op unless the
+ * floating-button option is enabled (default: off).
+ */
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status !== 'complete') return;
+  const url = tab.url ?? '';
+  if (!VENICE_URL.test(url)) return;
+  getOptions().then((options) => {
+    if (options.floatingButton !== true) return;
+    ensureContentScripts(tabId, options).catch(() => {});
+  });
+});
+
+/**
+ * Live-apply floating-button toggles: inject on open venice.ai tabs when
+ * enabled, hide on already-injected tabs when disabled.
+ */
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes[OPTIONS_KEY]) return;
+  const options = { ...DEFAULT_OPTIONS, ...(changes[OPTIONS_KEY].newValue ?? {}) };
+  browser.tabs.query({ url: ['https://venice.ai/*'] }).then((tabs) => {
+    for (const tab of tabs) {
+      if (options.floatingButton === true) {
+        ensureContentScripts(tab.id, options).catch(() => {});
+      } else {
+        browser.tabs.sendMessage(tab.id, { type: 'vault:configure', floatingButton: false }).catch(() => {});
+      }
+    }
+  });
+});
+
 /** Find the active venice.ai tab, if any (host permission makes its URL visible). */
 async function getActiveVeniceTab() {
   const tabs = await browser.tabs.query({ active: true, lastFocusedWindow: true });
@@ -85,8 +119,7 @@ async function scrapeTab(tab, options) {
   } catch {
     // not injected yet — fall through
   }
-  await browser.scripting.executeScript({ target: { tabId: tab.id }, files: CONTENT_SCRIPT_FILES });
-  await browser.tabs.sendMessage(tab.id, { type: 'vault:configure', floatingButton: options.floatingButton === true }).catch(() => {});
+  await ensureContentScripts(tab.id, options);
   return browser.tabs.sendMessage(tab.id, { type: 'vault:scrape' });
 }
 
@@ -315,7 +348,7 @@ function waitForTabComplete(tabId, options = {}) {
  * @param {{ floatingButton?: boolean }} options
  * @returns {Promise<void>}
  */
-async function injectIntoTab(tabId, options) {
+async function ensureContentScripts(tabId, options) {
   await browser.scripting.executeScript({ target: { tabId }, files: CONTENT_SCRIPT_FILES });
   await browser.tabs.sendMessage(tabId, { type: 'vault:configure', floatingButton: options.floatingButton === true }).catch(() => {});
 }
@@ -464,7 +497,7 @@ async function runExportAll() {
       try {
         await browser.tabs.update(crawlTab.id, { url: item.url });
         await waitForTabComplete(crawlTab.id);
-        await injectIntoTab(crawlTab.id, options);
+        await ensureContentScripts(crawlTab.id, options);
         const scraped = await waitForScrape(crawlTab.id);
         if (!scraped?.ok) throw new Error(scraped?.message ?? 'scrape failed');
         // Chrome guard: page furniture (sidebar, drag-and-drop hints) is
