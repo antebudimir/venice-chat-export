@@ -104,8 +104,10 @@ async function checkHostPermission() {
     return true;
   }
   banner.hidden = false;
+  const button = $('btn-grant-permission');
   button.onclick = () => {
-    browser.runtime.sendMessage({ type: 'vault:open-options' }).catch(() => {});
+    browser.runtime.openOptionsPage()
+      .catch((e) => logLine(t('errUnexpected', [String(e?.message ?? e)]), 'error'));
   };
   return false;
 }

@@ -938,7 +938,6 @@ async function clearData() {
 /** Message router — Firefox supports Promise-returning listeners. */
 browser.runtime.onMessage.addListener((message) => {
   switch (message?.type) {
-    case 'vault:open-options': return browser.runtime.openOptionsPage();
     case 'vault:ping': return Promise.resolve({ ok: true, v: MY_VERSION });
     case 'vault:export': return runExport();
     case 'vault:export:all': return runExportAll();
