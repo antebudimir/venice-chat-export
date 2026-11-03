@@ -1,6 +1,6 @@
 # Venice Vault
 
-v0.2.0. A local-only Firefox extension (MV3) that archives **your own Venice.ai conversations**: exports them to timestamped files in several formats, and re-imports them on another machine with a lineage-aware merge. It uploads nothing and contacts nothing — every byte stays on your machine.
+v0.3.0. A local-only Firefox extension (MV3) that archives **your own Venice.ai conversations**: exports them to timestamped files in several formats, and re-imports them on another machine with a lineage-aware merge. It uploads nothing and contacts nothing — every byte stays on your machine.
 
 This project is a companion to the [Venice Local Archive](../README.md) toolkit and deliberately shares its vocabulary and safety posture. It is not affiliated with or endorsed by Venice.ai.
 
@@ -23,7 +23,7 @@ npm run build      # web-ext build — produces the XPI zip
 npm run icons      # regenerate icons/*.png (dev-only generator)
 ```
 
-CI (`.github/workflows/ci.yml`) runs `npm test` and `npm run lint` on Ubuntu, Windows, and macOS. The extension code itself is OS-neutral: `/`-only relative paths, BOM-less UTF-8, `\n` endings, no home-directory or drive-letter assumptions — so a matrix failure indicates a genuine portability bug, not a test quirk.
+CI (`.github/workflows/ci.yml`) runs `npm test` and `npm run lint` on Linux. The extension is developed and tested on Linux with Firefox; other operating systems and browsers are untested and unsupported. Filename sanitization still follows Windows rules on purpose — your own backup drive is NTFS, so exported names must survive it.
 
 ## Permissions — rationale
 
@@ -37,15 +37,13 @@ CI (`.github/workflows/ci.yml`) runs `npm test` and `npm run lint` on Ubuntu, Wi
 
 Explicitly **not** requested: `tabs`, `webRequest`, `cookies`, `fileSystem`, `unlimitedStorage`, `alarms`.
 
-## Folder access — the honest Firefox story
+## Folder access (removed in v0.3.0)
 
-Firefox has no File System Access API (`showDirectoryPicker`), so there is no way to obtain a writable handle to a folder you pick with a file dialog. Venice Vault therefore works in tiers:
+The archive-folder picker was removed. Reason: Firefox closes extension popups the moment a file dialog opens, which made the popup folder picker dead code — and exports never used it anyway (Firefox has no writable picked-folder API; exports go through the Downloads API).
 
-1. **Drag-and-drop handle** — if your Firefox exposes `getAsFileSystemHandle()` for a dropped folder, the real `FileSystemDirectoryHandle` is persisted in IndexedDB and re-requested (`queryPermission`/`requestPermission`) on each use. This is the only tier that can write into a chosen folder.
-2. **`<input type="file" webkitdirectory>`** — remembers the folder's *File objects* (structured-cloneable, stored in IndexedDB, survives restart) so **re-import** can read them again. This tier is read-only: it does **not** grant a writable folder, and every export still writes through the Downloads API. Stored File objects can become unreadable after a restart or if files move — you get an explicit re-select prompt, never silent failure.
-3. **Downloads API** — `browser.downloads.download()` with `conflictAction: 'uniquify'` and timestamped filenames. This is the primary write path on Firefox. Optional per-file "save as" dialogs are available in Options.
+Imports run from the **Options page** instead (Options → Import files…): the Options page is a real tab and survives file dialogs, so the full inspect → review → commit flow is reliable there.
 
-Net effect on today's Firefox: exports land in your Downloads folder (or wherever you choose per file), with unique timestamped names so **no run ever replaces an earlier one**. If a write hits `NotAllowedError`/`NotFoundError`, you are told explicitly and asked to re-select — nothing fails silently.
+One Firefox quirk to know: MV3 host permissions (venice.ai access) start OFF on freshly loaded extensions and reset when a temporary add-on is reloaded. The popup warns you about it; the grant button lives on the Options page, where the permission prompt cannot be interrupted.
 
 ## Safety posture
 
@@ -94,6 +92,8 @@ Plain text, JSONL, and CSV **export** options were removed in v0.2.0 — but **i
 
 ## Import
 
+Imports run from the **Options page** (Options → Import files… — dry-run counts, then Commit).
+
 Accepts `.json`, `.jsonl`, `.md`, `.txt`, `.csv`, `.html` — detected by extension, then by content sniffing. `schemaVersion` is validated; unknown versions are rejected with a clear message. Files that fail to parse are reported individually; the run continues with the rest.
 
 ## Diagnostics export (redacted)
@@ -126,15 +126,7 @@ The network clause is dormant for a purely local extension: there is no server t
 
 - **Selector calibration (the one open input):** `lib/scrape.js` selectors are best-effort pending one-time calibration against the live Venice.ai DOM. The matched selector tier is reported to the activity log, so calibration against the real site is a single pass: open a conversation, export, read the logged tier, tighten tier-1/2 selectors if the generic heuristic (tier 3) matched.
 - Auto-sync currently reminds via the popup only; revisit if a scheduling permission ever becomes acceptable.
-- Remembered-folder re-import scans only top-level picked files (webkitdirectory is not recursive on all platforms).
 
-## Manual testing on macOS / Windows
+## Platform scope
 
-Developer tests run on Linux (and CI); the following need a human on the target OS:
-
-- [ ] Downloads land in the OS Downloads folder with `uniquify` names; `saveAs` dialog behaves (macOS sheet / Windows dialog).
-- [ ] `conflictAction: 'uniquify'` produces non-colliding names on NTFS (case-insensitivity, reserved names) and APFS.
-- [ ] Filename sanitizer output is accepted by both filesystems (unicode titles, trailing dots/spaces, >120 chars).
-- [ ] Dark/light theme follows the OS setting; contrast reads well on both.
-- [ ] Folder re-permission prompt after browser restart (handle tier, where available).
-- [ ] Floating button renders and functions on both platforms.
+Developed and tested on Linux with Firefox only. Other browsers (Brave, Chrome, …) and other operating systems are untested and unsupported. Filename sanitization still follows Windows rules by design — exported files must survive NTFS/exFAT backup drives regardless of platform.
