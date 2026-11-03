@@ -107,7 +107,10 @@ async function checkHostPermission() {
   banner.hidden = false;
   button.disabled = false;
   button.textContent = t('btnOpenOptionsToGrant');
-  button.onclick = () => browser.runtime.openOptionsPage();
+  button.onclick = () => {
+    browser.tabs.create({ url: browser.runtime.getURL('options/options.html') })
+      .catch((e) => logLine(t('errUnexpected', [String(e?.message ?? e)]), 'error'));
+  };
   return false;
 }
 
