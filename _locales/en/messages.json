@@ -501,5 +501,14 @@
   },
   "accessGranted": {
     "message": "Access granted"
+  },
+  "accessTitle": {
+    "message": "venice.ai access"
+  },
+  "accessNotGranted": {
+    "message": "Not granted yet — exports and the floating button need this."
+  },
+  "btnOpenOptionsToGrant": {
+    "message": "Open Options to grant access"
   }
 }

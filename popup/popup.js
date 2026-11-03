@@ -106,27 +106,8 @@ async function checkHostPermission() {
   }
   banner.hidden = false;
   button.disabled = false;
-  button.textContent = t('btnGrantPermission');
-  button.onclick = async () => {
-    try {
-      const ok = await browser.permissions.request(VENICE_ORIGIN);
-      button.disabled = true;
-      if (ok) {
-        banner.classList.add('vv-banner-success');
-        status.textContent = t('grantSuccess');
-        button.textContent = t('accessGranted');
-        logLine(t('grantSuccess'), 'info');
-        setTimeout(() => { banner.hidden = true; }, 4000);
-      } else {
-        status.textContent = t('grantFailed');
-        button.disabled = false;
-        logLine(t('grantFailed'), 'error');
-      }
-    } catch (e) {
-      button.disabled = false;
-      logLine(t('grantFailed'), 'error');
-    }
-  };
+  button.textContent = t('btnOpenOptionsToGrant');
+  button.onclick = () => browser.runtime.openOptionsPage();
   return false;
 }
 

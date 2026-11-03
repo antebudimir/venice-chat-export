@@ -24,6 +24,7 @@ const t = (key, subs) => browser.i18n.getMessage(key, subs) || key;
 
 let clearArmed = null;
 let pendingImportFiles = null;
+const VENICE_ORIGIN = { origins: ['https://venice.ai/*'] };
 
 /** Apply _locales strings to every data-i18n / data-i18n-aria element. */
 function localize() {
@@ -179,6 +180,42 @@ async function importCommit() {
   }
 }
 
+/**
+ * The reliable grant path: the Options page is a real tab, so Firefox's
+ * permission prompt cannot kill it the way it kills the extension popup.
+ * The granted state is persistent and visible here at all times.
+ */
+async function refreshAccess() {
+  let granted = true;
+  try {
+    granted = await browser.permissions.contains(VENICE_ORIGIN);
+  } catch {
+    granted = true;
+  }
+  const status = document.getElementById('access-status');
+  const button = document.getElementById('btn-access-grant');
+  if (granted) {
+    status.textContent = t('accessGranted');
+    button.disabled = true;
+  } else {
+    status.textContent = t('accessNotGranted');
+    button.disabled = false;
+  }
+}
+
+/** Request venice.ai access from this tab (survives the prompt). */
+async function grantAccess() {
+  const button = document.getElementById('btn-access-grant');
+  button.disabled = true;
+  try {
+    const ok = await browser.permissions.request(VENICE_ORIGIN);
+    note(ok ? t('grantSuccess') : t('grantFailed'));
+  } catch (e) {
+    note(t('grantFailed'));
+  }
+  await refreshAccess();
+}
+
 function wireImport() {
   document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-input').click());
   document.getElementById('import-input').addEventListener('change', (event) => {
@@ -197,6 +234,8 @@ function wire() {
     input.addEventListener('change', () => void save());
   }
   $('opt-template').addEventListener('change', () => void save());
+  document.getElementById('btn-access-grant').addEventListener('click', () => void grantAccess());
+  void refreshAccess();
   wireImport();
   $('btn-diagnostics').addEventListener('click', () => void runDiagnostics());
   $('btn-clear').addEventListener('click', () => void clearData());
