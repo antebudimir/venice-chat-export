@@ -1,26 +1,21 @@
 # Copyright (C) 2026 Ante Budimir
 # SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Linux-only by design: the extension is developed and tested on Linux with
+# Firefox. Other platforms are untested and unsupported.
 name: CI
 on:
   push:
   pull_request:
 jobs:
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: venice-vault
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: venice-vault/package-lock.json
       - run: npm install
       - run: npm test
       - run: npm run lint
