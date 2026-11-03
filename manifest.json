@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Venice Vault \u2014 local archive for Venice.ai",
   "short_name": "Venice Vault",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "__MSG_extensionDescription__",
   "author": "Ante Budimir",
   "default_locale": "en",

@@ -1,6 +1,6 @@
 {
   "name": "venice-vault",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "Dev tooling for the Venice Vault Firefox extension. Nothing in this file ships in the built XPI.",
   "license": "AGPL-3.0-or-later",
