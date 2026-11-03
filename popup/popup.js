@@ -63,7 +63,7 @@ function setCountsSummary(snapshotFiles, conversations, messages, status) {
 async function refreshFormatsLine() {
   const stored = await browser.storage.local.get(OPTIONS_KEY);
   const options = stored[OPTIONS_KEY] ?? {};
-  const formats = Array.isArray(options.formats) && options.formats.length > 0 ? options.formats : ['json'];
+  const formats = Array.isArray(options.formats) && options.formats.length > 0 ? options.formats : ['bundle'];
   $('formats-line').textContent = t('formatsActive', [formats.map((f) => t(FORMAT_LABEL_KEYS[f] ?? f)).join(', ')]);
 }
 

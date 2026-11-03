@@ -323,7 +323,7 @@
     "message": "Export formats"
   },
   "optFormatsDesc": {
-    "message": "Each format is written as separate timestamped files; existing files are never replaced. Default: JSON only. Use the Bundle for moving machines — it carries version history."
+    "message": "Default: Bundle (includes lineage — this is the one to export before a reinstall). Each format is written as separate timestamped files; existing files are never replaced. JSON stays available as a lean option; change the checklist any time."
   },
   "formatJson": {
     "message": "JSON (backup — canonical, lossless)"

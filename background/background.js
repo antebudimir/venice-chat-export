@@ -57,7 +57,7 @@ const RUN_PREFIX = 'vault:run:';
 const CONTENT_SCRIPT_FILES = ['lib/scrape.js', 'content/content.js'];
 const VENICE_URL = /^https:\/\/venice\.ai\//;
 const DEFAULT_OPTIONS = {
-  formats: ['json'],
+  formats: ['bundle'],
   floatingButton: false,
   filenameTemplate: filenames.DEFAULT_FILENAME_TEMPLATE,
   askSaveLocation: false,
@@ -365,7 +365,7 @@ async function runExport() {
     snapshotFileCount,
     conversationCount: conversations.length,
     messageCount,
-    formats: options.formats ?? ['json'],
+    formats: options.formats ?? ['bundle'],
     written,
     failures,
     mergeReport: plan.report,
@@ -474,7 +474,7 @@ async function ensureContentScripts(tabId, options) {
  * @returns {Promise<{ snapshotFileCount: number, written: string[], failures: Array<object> }>}
  */
 async function serializeAndWrite(conversations, options, startedAt, library, runTitle) {
-  const formats = Array.isArray(options.formats) && options.formats.length > 0 ? options.formats : ['json'];
+  const formats = Array.isArray(options.formats) && options.formats.length > 0 ? options.formats : ['bundle'];
   const failures = [];
   const written = [];
   let snapshotFileCount = 0;
@@ -709,7 +709,7 @@ async function runExportAll() {
     snapshotFileCount: writePhase.snapshotFileCount,
     conversationCount: scrapedCount,
     messageCount,
-    formats: options.formats ?? ['json'],
+    formats: options.formats ?? ['bundle'],
     written: writePhase.written,
     failures,
     mergeReport: plan.report,

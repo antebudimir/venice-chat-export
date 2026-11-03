@@ -86,7 +86,7 @@ Each run writes separate timestamped files (default template `venice-{date}T{tim
 - **Markdown** — one file per conversation; YAML front-matter (title, dates, model, id, hash), `## Role` headings, fenced code preserved.
 - **HTML** — self-contained, no external assets, sanitized, with the canonical JSON embedded for lossless re-import; suitable for archiving/printing.
 
-Default is JSON only; change the checklist in Options.
+Default is Bundle only — the one to export before an OS reinstall (it carries the lineage). JSON stays available as a lean option; change the checklist in Options.
 
 Plain text, JSONL, and CSV **export** options were removed in v0.2.0 — but **import still reads them** (and every other v0.1.0 file), so existing archives are not orphaned.
 

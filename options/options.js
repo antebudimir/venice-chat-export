@@ -12,7 +12,7 @@
 
 const OPTIONS_KEY = 'vault:options';
 const DEFAULT_OPTIONS = {
-  formats: ['json'],
+  formats: ['bundle'],
   floatingButton: false,
   filenameTemplate: 'venice-{date}T{time}-{title}.{ext}',
   askSaveLocation: false,
@@ -45,7 +45,7 @@ function note(message) {
 function readControls() {
   const formats = Array.from($('format-list').querySelectorAll('input[type=checkbox]:checked')).map((c) => c.value);
   return {
-    formats: formats.length > 0 ? formats : ['json'],
+    formats: formats.length > 0 ? formats : ['bundle'],
     floatingButton: $('opt-floating').checked,
     filenameTemplate: $('opt-template').value.trim() || DEFAULT_OPTIONS.filenameTemplate,
     askSaveLocation: $('opt-asksave').checked,
