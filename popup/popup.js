@@ -103,6 +103,9 @@ async function checkHostPermission() {
     return true;
   }
   banner.hidden = false;
+  button.onclick = () => {
+    browser.runtime.sendMessage({ type: 'vault:open-options' }).catch(() => {});
+  };
   return false;
 }
 
