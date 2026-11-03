@@ -98,19 +98,11 @@ async function checkHostPermission() {
     granted = true; // permissions API hiccup — do not block the UI on it
   }
   const banner = $('host-permission-banner');
-  const button = $('btn-grant-permission');
-  const status = banner.querySelector('.vv-status');
   if (granted) {
     banner.hidden = true;
     return true;
   }
   banner.hidden = false;
-  button.disabled = false;
-  button.textContent = t('btnOpenOptionsToGrant');
-  button.onclick = () => {
-    browser.tabs.create({ url: browser.runtime.getURL('options/options.html') })
-      .catch((e) => logLine(t('errUnexpected', [String(e?.message ?? e)]), 'error'));
-  };
   return false;
 }
 
